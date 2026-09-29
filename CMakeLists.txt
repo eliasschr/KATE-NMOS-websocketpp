@@ -37,6 +37,10 @@ else()
   project (websocketpp)
 endif()
 
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 set(INSTALL_INCLUDE_DIR include CACHE PATH "Installation directory for header files")
@@ -112,7 +116,7 @@ if (BUILD_TESTS OR BUILD_EXAMPLES)
 
     # Visual studio
     if (MSVC)
-        set (WEBSOCKETPP_BOOST_LIBS system thread)
+        set (WEBSOCKETPP_BOOST_LIBS thread)
         set (CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /GL /Gy /GF /Ox /Ob2 /Ot /Oi /MP /arch:SSE2 /fp:fast")
         set (CMAKE_SHARED_LINKER_FLAGS_RELEASE "${CMAKE_SHARED_LINKER_FLAGS_RELEASE} /LTCG /INCREMENTAL:NO /OPT:REF /OPT:ICF")
         add_definitions (/W3 /wd4996 /wd4995 /wd4355)
@@ -129,8 +133,7 @@ if (BUILD_TESTS OR BUILD_EXAMPLES)
             set (WEBSOCKETPP_PLATFORM_LIBS pthread)
         endif()
         set (WEBSOCKETPP_PLATFORM_TLS_LIBS ssl crypto)
-        set (WEBSOCKETPP_BOOST_LIBS system thread)
-        set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
+        set (WEBSOCKETPP_BOOST_LIBS thread)
         if (NOT APPLE)
             add_definitions (-DNDEBUG -Wall -Wcast-align) # todo: should we use CMAKE_C_FLAGS for these?
         endif ()
@@ -139,7 +142,7 @@ if (BUILD_TESTS OR BUILD_EXAMPLES)
         execute_process (COMMAND ${CMAKE_CXX_COMPILER} "-dumpversion" OUTPUT_VARIABLE GCC_VERSION)
         if ("${GCC_VERSION}" STRGREATER "4.4.0")
             message("* C++11 support partially enabled due to GCC version ${GCC_VERSION}")
-            set (WEBSOCKETPP_BOOST_LIBS system thread)
+            set (WEBSOCKETPP_BOOST_LIBS thread)
         endif ()
     endif ()
 
@@ -151,8 +154,7 @@ if (BUILD_TESTS OR BUILD_EXAMPLES)
             set (WEBSOCKETPP_PLATFORM_LIBS pthread)
         endif()
         set (WEBSOCKETPP_PLATFORM_TLS_LIBS ssl crypto)
-        set (WEBSOCKETPP_BOOST_LIBS system thread)
-        set (CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-std=c++0x -stdlib=libc++") # todo: is libc++ really needed here?
+        set (WEBSOCKETPP_BOOST_LIBS thread)
         if (NOT APPLE)
             add_definitions (-DNDEBUG -Wall -Wno-padded) # todo: should we use CMAKE_C_FLAGS for these?
         endif ()
@@ -279,4 +281,3 @@ install (FILES
   "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/websocketpp-config.cmake"
   "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/websocketpp-configVersion.cmake"
   DESTINATION "${INSTALL_CMAKE_DIR}" COMPONENT dev)
-

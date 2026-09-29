@@ -59,7 +59,7 @@ void on_message(ws_echo_server* s, websocketpp::connection_hdl hdl, ws_echo_serv
 }
 
 int main() {
-    asio::io_service service;
+    asio::io_context service;
 
     // Add a TCP echo server on port 9003
     tcp_echo_server custom_http_server(service, 9003);

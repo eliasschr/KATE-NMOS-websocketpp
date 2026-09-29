@@ -62,10 +62,11 @@ public:
     /// Type of a shared pointer to this connection socket component
     typedef lib::shared_ptr<type> ptr;
 
-    /// Type of a pointer to the Asio io_service being used
-    typedef lib::asio::io_service* io_service_ptr;
-    /// Type of a pointer to the Asio io_service strand being used
-    typedef lib::shared_ptr<lib::asio::io_service::strand> strand_ptr;
+    /// Type of a pointer to the Asio io_context being used
+    typedef lib::asio::io_context* io_service_ptr;
+    /// Type of a pointer to the Asio strand being used
+    typedef lib::shared_ptr<lib::asio::strand<
+        lib::asio::io_context::executor_type> > strand_ptr;
     /// Type of the ASIO socket being used
     typedef lib::asio::ip::tcp::socket socket_type;
     /// Type of a shared pointer to the socket being used.
