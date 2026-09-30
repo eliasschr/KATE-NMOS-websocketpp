@@ -44,6 +44,7 @@
     #include <type_traits>
 #else
     #include <boost/aligned_storage.hpp>
+    #include <boost/type_traits/is_same.hpp>
 #endif
 
 

@@ -45,11 +45,12 @@
 // features. In most cases features that are targeted individually may also be
 // selectively disabled via an associated _WEBSOCKETPP_NOXXX_ define.
 
-#if defined(_WEBSOCKETPP_CPP11_STL_) || __cplusplus >= 201103L || defined(_WEBSOCKETPP_CPP11_STRICT_)
+#if defined(_WEBSOCKETPP_CPP11_STL_) || __cplusplus >= 201103L || (defined(_MSVC_LANG) && _MSVC_LANG >= 201103L) || defined(_WEBSOCKETPP_CPP11_STRICT_)
     // This check tests for blanket c++11 coverage. It can be activated in one
-    // of three ways. Either the compiler itself reports that it is a full 
-    // C++11 compiler via the __cplusplus macro or the user/build system
-    // supplies one of the two preprocessor defines below:
+    // of four ways. Either the compiler itself reports that it is a full
+    // C++11 compiler via the __cplusplus macro (or, on MSVC, the _MSVC_LANG
+    // macro), or the user/build system supplies one of the two preprocessor
+    // defines below:
     
     // This is defined to allow other WebSocket++ common headers to enable
     // C++11 features when they are detected by this file rather than
