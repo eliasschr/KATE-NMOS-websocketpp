@@ -1,0 +1,79 @@
+name: Boost compatibility
+
+on:
+  push:
+    paths:
+      - CMakeLists.txt
+      - cmake/**
+      - websocketpp/**
+      - test/**
+      - .github/workflows/boost-compatibility.yml
+  pull_request:
+    paths:
+      - CMakeLists.txt
+      - cmake/**
+      - websocketpp/**
+      - test/**
+      - .github/workflows/boost-compatibility.yml
+  schedule:
+    - cron: '0 3 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  boost-1-91:
+    name: Ubuntu GCC / Boost 1.91.0
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes build-essential ca-certificates curl libssl-dev zlib1g-dev
+
+      - name: Download and build Boost 1.91.0
+        run: |
+          boost_archive="$RUNNER_TEMP/boost_1_91_0.tar.gz"
+          boost_source="$RUNNER_TEMP/boost_1_91_0"
+          boost_prefix="$RUNNER_TEMP/boost-1.91.0"
+          curl --fail --location --retry 3 --output "$boost_archive" \
+            https://archives.boost.io/release/1.91.0/source/boost_1_91_0.tar.gz
+          echo '5734305f40a76c30f951c9abd409a45a2a19fb546efe4162119250bbe4d3a463  '"$boost_archive" | sha256sum --check
+          tar -xzf "$boost_archive" -C "$RUNNER_TEMP"
+          "$boost_source/bootstrap.sh" --with-libraries=thread,test,random
+          "$boost_source/b2" --with-thread --with-test --with-random \
+            link=shared threading=multi variant=release install --prefix="$boost_prefix"
+          echo "BOOST_ROOT=$boost_prefix" >> "$GITHUB_ENV"
+
+      - name: Confirm Boost version
+        run: grep '^#define BOOST_VERSION 109100$' "$BOOST_ROOT/include/boost/version.hpp"
+
+      - name: Configure
+        env:
+          CC: gcc
+          CXX: g++
+        run: >-
+          cmake -S . -B build
+          -DCMAKE_BUILD_TYPE=Release
+          -DCMAKE_CXX_STANDARD=17
+          -DBUILD_TESTS=ON
+          -DBUILD_EXAMPLES=ON
+          -DBOOST_ROOT="$BOOST_ROOT"
+          -DBoost_LIBRARYDIR="$BOOST_ROOT/lib"
+          -DBoost_NO_SYSTEM_PATHS=ON
+
+      - name: Verify CMake selected Boost 1.91.0
+        run: |
+          grep -F "Boost_INCLUDE_DIR:PATH=$BOOST_ROOT/include" build/CMakeCache.txt
+          grep -F "$BOOST_ROOT/lib/" build/CMakeCache.txt
+
+      - name: Build
+        run: cmake --build build --parallel 2
+
+      - name: Test
+        run: ctest --test-dir build --output-on-failure --parallel 2

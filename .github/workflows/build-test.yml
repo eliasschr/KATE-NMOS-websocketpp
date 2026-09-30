@@ -1,0 +1,66 @@
+name: Build and test
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    name: ${{ matrix.os }} / ${{ matrix.compiler }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            compiler: GCC
+            cc: gcc
+            cxx: g++
+          - os: ubuntu-latest
+            compiler: Clang
+            cc: clang
+            cxx: clang++
+          - os: macos-latest
+            compiler: AppleClang
+            cc: clang
+            cxx: clang++
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install Ubuntu dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes build-essential clang libboost-all-dev libssl-dev zlib1g-dev
+
+      - name: Install macOS dependencies
+        if: runner.os == 'macOS'
+        run: brew install boost openssl@3 zlib
+
+      - name: Set macOS dependency paths
+        if: runner.os == 'macOS'
+        run: |
+          echo "BOOST_ROOT=$(brew --prefix boost)" >> "$GITHUB_ENV"
+          echo "CMAKE_PREFIX_PATH=$(brew --prefix boost);$(brew --prefix openssl@3);$(brew --prefix zlib)" >> "$GITHUB_ENV"
+
+      - name: Configure
+        env:
+          CC: ${{ matrix.cc }}
+          CXX: ${{ matrix.cxx }}
+        run: >-
+          cmake -S . -B build
+          -DCMAKE_BUILD_TYPE=Release
+          -DCMAKE_CXX_STANDARD=17
+          -DBUILD_TESTS=ON
+          -DBUILD_EXAMPLES=ON
+
+      - name: Build
+        run: cmake --build build --parallel 2
+
+      - name: Test
+        run: ctest --test-dir build --output-on-failure --parallel 2
