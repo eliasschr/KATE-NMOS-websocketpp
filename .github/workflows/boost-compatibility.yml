@@ -45,9 +45,12 @@ jobs:
             https://archives.boost.io/release/1.91.0/source/boost_1_91_0.tar.gz
           echo '5734305f40a76c30f951c9abd409a45a2a19fb546efe4162119250bbe4d3a463  '"$boost_archive" | sha256sum --check
           tar -xzf "$boost_archive" -C "$RUNNER_TEMP"
-          "$boost_source/bootstrap.sh" --with-libraries=thread,test,random
-          "$boost_source/b2" --with-thread --with-test --with-random \
-            link=shared threading=multi variant=release install --prefix="$boost_prefix"
+          (
+            cd "$boost_source"
+            ./bootstrap.sh --with-libraries=thread,test,random
+            ./b2 --with-thread --with-test --with-random \
+              link=shared threading=multi variant=release install --prefix="$boost_prefix"
+          )
           echo "BOOST_ROOT=$boost_prefix" >> "$GITHUB_ENV"
 
       - name: Confirm Boost version
@@ -76,4 +79,4 @@ jobs:
         run: cmake --build build --parallel 2
 
       - name: Test
-        run: ctest --test-dir build --output-on-failure --parallel 2
+        run: ctest --test-dir build --output-on-failure
